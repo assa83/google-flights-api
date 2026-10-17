@@ -1,0 +1,14 @@
+{
+  "name": "google-flights-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Google Flights API example in Python, JavaScript and n8n: flight prices by route and date, price calendar, price insights, fare alerts. MCP-ready.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node example.mjs"
+  },
+  "dependencies": {
+    "apify-client": "^2.25.0"
+  }
+}

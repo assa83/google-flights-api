@@ -1,0 +1,2 @@
+# Examples tested against the 1.x API (call() returns a dict)
+apify-client>=1.7,<2

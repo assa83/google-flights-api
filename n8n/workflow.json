@@ -1,0 +1,95 @@
+{
+  "name": "Apify google-flights-scraper (scheduled fare alert)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "id": "4d825a06-4567-4922-b161-1f4b0ef34fdf",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/lagenuina_agency~google-flights-scraper/run-sync-get-dataset-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"origin\": \"LHR\",\n  \"destination\": \"JFK\",\n  \"departureDate\": \"30 days\",\n  \"currency\": \"USD\",\n  \"sortBy\": \"price\",\n  \"maxResults\": 20\n}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "3df48071-4d49-42a6-9e2b-f34d2e14aa28",
+      "name": "Run Apify actor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Apify API token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const MAX_PRICE = 450; // alert threshold, in the currency of the request\nreturn $input.all()\n  .filter(({ json }) => json.type === 'flight' && json.price != null && json.price <= MAX_PRICE)\n  .map(({ json }) => ({ json: {\n    alert: `${json.origin}-${json.destination} ${json.departureTime}: ${json.price} ${json.currency} on ${json.airlines.join(', ')} (${json.stops} stop(s))`,\n    price: json.price, flightNumbers: json.flightNumbers, priceLevel: json.priceInsights?.priceLevel, googleFlightsUrl: json.googleFlightsUrl,\n  } }));"
+      },
+      "id": "68d86a90-6e28-468b-928f-0de4faf1e949",
+      "name": "Below threshold",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Run Apify actor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Apify actor": {
+      "main": [
+        [
+          {
+            "node": "Below threshold",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "active": false
+}
